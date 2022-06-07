@@ -80,7 +80,7 @@ func NewInfo(f kcmdutil.Factory, streams genericclioptions.IOStreams) *cobra.Com
 	flags.StringVarP(&o.Output, "output", "o", o.Output, "Print the image in an alternative format: json")
 	flags.StringVar(&o.FileDir, "dir", o.FileDir, "The directory on disk that file:// images will be read from.")
 	flags.StringVar(&o.ICSPFile, "icsp-file", o.ICSPFile, "Path to an ImageContentSourcePolicy file.  If set, data from this file will be used to find alternative locations for images.")
-
+	flags.MarkDeprecated("icsp-file", "ImageContentSourcePolicy will be replaced by ImageDigestMirrorSet")
 	return cmd
 }
 

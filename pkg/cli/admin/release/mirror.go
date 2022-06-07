@@ -34,8 +34,8 @@ import (
 	"k8s.io/kubectl/pkg/util/templates"
 	"sigs.k8s.io/yaml"
 
+	apicfgv1 "github.com/openshift/api/config/v1"
 	imagev1 "github.com/openshift/api/image/v1"
-	operatorv1alpha1 "github.com/openshift/api/operator/v1alpha1"
 	imageclient "github.com/openshift/client-go/image/clientset/versioned"
 	"github.com/openshift/library-go/pkg/image/dockerv1client"
 	imagereference "github.com/openshift/library-go/pkg/image/reference"
@@ -856,10 +856,10 @@ func (o *MirrorOptions) Run() error {
 // https://github.com/openshift/installer/blob/master/docs/dev/alternative_release_image_sources.md
 func printImageContentInstructions(out io.Writer, from string, toList []string, signatureToDir string, repositories map[string]struct{}) error {
 	type installConfigSubsection struct {
-		ImageContentSources []operatorv1alpha1.RepositoryDigestMirrors `json:"imageContentSources"`
+		ImageContentSources []apicfgv1.ImageDigestMirrors `json:"imageContentSources"`
 	}
 
-	var sources []operatorv1alpha1.RepositoryDigestMirrors
+	var sources []apicfgv1.ImageDigestMirrors
 
 	for _, to := range toList {
 		mirrorRef, err := imagesource.ParseReference(to)
@@ -887,9 +887,9 @@ func printImageContentInstructions(out io.Writer, from string, toList []string, 
 		}
 
 		for repository := range repositories {
-			sources = append(sources, operatorv1alpha1.RepositoryDigestMirrors{
+			sources = append(sources, apicfgv1.ImageDigestMirrors{
 				Source:  repository,
-				Mirrors: []string{mirrorRepo},
+				Mirrors: []apicfgv1.ImageMirror{apicfgv1.ImageMirror(mirrorRepo)},
 			})
 		}
 	}
@@ -907,16 +907,16 @@ func printImageContentInstructions(out io.Writer, from string, toList []string, 
 	fmt.Fprintf(out, "\nTo use the new mirrored repository to install, add the following section to the install-config.yaml:\n\n")
 	fmt.Fprintf(out, string(installConfigExample))
 
-	// Create and display ImageContentSourcePolicy example
-	icsp := operatorv1alpha1.ImageContentSourcePolicy{
+	// Create and display ImageDigestMirrorSet example
+	icsp := apicfgv1.ImageDigestMirrorSet{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: operatorv1alpha1.GroupVersion.String(),
-			Kind:       "ImageContentSourcePolicy"},
+			APIVersion: apicfgv1.GroupVersion.String(),
+			Kind:       "ImageDigestMirrorSet"},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "example",
 		},
-		Spec: operatorv1alpha1.ImageContentSourcePolicySpec{
-			RepositoryDigestMirrors: sources,
+		Spec: apicfgv1.ImageDigestMirrorSetSpec{
+			ImageDigestMirrors: sources,
 		},
 	}
 
@@ -930,9 +930,9 @@ func printImageContentInstructions(out io.Writer, from string, toList []string, 
 
 	icspExample, err := yaml.Marshal(unstructuredObj.Object)
 	if err != nil {
-		return fmt.Errorf("Unable to marshal ImageContentSourcePolicy example yaml: %v", err)
+		return fmt.Errorf("Unable to marshal ImageDigestMirrorSet example yaml: %v", err)
 	}
-	fmt.Fprintf(out, "\n\nTo use the new mirrored repository for upgrades, use the following to create an ImageContentSourcePolicy:\n\n")
+	fmt.Fprintf(out, "\n\nTo use the new mirrored repository for upgrades, use the following to create an ImageDigestMirrorSet:\n\n")
 	fmt.Fprintf(out, string(icspExample))
 
 	if len(signatureToDir) != 0 {
@@ -959,9 +959,9 @@ func (o *MirrorOptions) HTTPClient() (*http.Client, error) {
 	}, nil
 }
 
-func dedupeSortSources(sources []operatorv1alpha1.RepositoryDigestMirrors) []operatorv1alpha1.RepositoryDigestMirrors {
-	unique := make(map[string][]string)
-	var uniqueSources []operatorv1alpha1.RepositoryDigestMirrors
+func dedupeSortSources(sources []apicfgv1.ImageDigestMirrors) []apicfgv1.ImageDigestMirrors {
+	unique := make(map[string][]apicfgv1.ImageMirror)
+	var uniqueSources []apicfgv1.ImageDigestMirrors
 	for _, s := range sources {
 		if mirrors, ok := unique[s.Source]; ok {
 			for _, m := range s.Mirrors {
@@ -975,7 +975,7 @@ func dedupeSortSources(sources []operatorv1alpha1.RepositoryDigestMirrors) []ope
 		}
 	}
 	for s, m := range unique {
-		uniqueSources = append(uniqueSources, operatorv1alpha1.RepositoryDigestMirrors{
+		uniqueSources = append(uniqueSources, apicfgv1.ImageDigestMirrors{
 			Source:  s,
 			Mirrors: m,
 		})
@@ -986,7 +986,7 @@ func dedupeSortSources(sources []operatorv1alpha1.RepositoryDigestMirrors) []ope
 	return uniqueSources
 }
 
-func contains(s []string, str string) bool {
+func contains(s []apicfgv1.ImageMirror, str apicfgv1.ImageMirror) bool {
 	for _, v := range s {
 		if v == str {
 			return true

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	operatorv1alpha1 "github.com/openshift/api/operator/v1alpha1"
+	apicfgv1 "github.com/openshift/api/config/v1"
 	"github.com/openshift/library-go/pkg/image/reference"
 	"github.com/openshift/oc/pkg/cli/image/imagesource"
 	"gopkg.in/yaml.v3"
@@ -280,14 +280,14 @@ func TestGenerateICSP(t *testing.T) {
 				icspByteLimit: maxICSPSize,
 			},
 			want: []byte(
-				`apiVersion: operator.openshift.io/v1alpha1
-kind: ImageContentSourcePolicy
+				`apiVersion: config.openshift.io/v1
+kind: ImageDigestMirrorSet
 metadata:
   labels:
     operators.openshift.org/catalog: "true"
   name: catalog
 spec:
-  repositoryDigestMirrors: []
+  imageDigestMirrors: []
 `,
 			),
 		},
@@ -300,14 +300,14 @@ spec:
 				icspByteLimit: maxICSPSize,
 			},
 			want: []byte(
-				`apiVersion: operator.openshift.io/v1alpha1
-kind: ImageContentSourcePolicy
+				`apiVersion: config.openshift.io/v1
+kind: ImageDigestMirrorSet
 metadata:
   labels:
     operators.openshift.org/catalog: "true"
   name: catalog
 spec:
-  repositoryDigestMirrors: []
+  imageDigestMirrors: []
 `,
 			),
 		},
@@ -319,14 +319,14 @@ spec:
 				icspByteLimit: maxICSPSize,
 			},
 			want: []byte(
-				`apiVersion: operator.openshift.io/v1alpha1
-kind: ImageContentSourcePolicy
+				`apiVersion: config.openshift.io/v1
+kind: ImageDigestMirrorSet
 metadata:
   labels:
     operators.openshift.org/catalog: "true"
   name: catalog
 spec:
-  repositoryDigestMirrors:
+  imageDigestMirrors:
   - mirrors:
     - quay.io/olmtest/strimzi-operator
     source: docker.io/strimzi/operator
@@ -342,14 +342,14 @@ spec:
 				icspByteLimit: maxICSPSize,
 			},
 			want: []byte(
-				`apiVersion: operator.openshift.io/v1alpha1
-kind: ImageContentSourcePolicy
+				`apiVersion: config.openshift.io/v1
+kind: ImageDigestMirrorSet
 metadata:
   labels:
     operators.openshift.org/catalog: "true"
   name: catalog
 spec:
-  repositoryDigestMirrors:
+  imageDigestMirrors:
   - mirrors:
     - quay.io
     source: docker.io
@@ -364,14 +364,14 @@ spec:
 				icspByteLimit: maxICSPSize,
 			},
 			want: []byte(
-				`apiVersion: operator.openshift.io/v1alpha1
-kind: ImageContentSourcePolicy
+				`apiVersion: config.openshift.io/v1
+kind: ImageDigestMirrorSet
 metadata:
   labels:
     operators.openshift.org/catalog: "true"
   name: catalog
 spec:
-  repositoryDigestMirrors:
+  imageDigestMirrors:
   - mirrors:
     - quay.io/olmtest/strimzi-operator
     source: docker.io/strimzi/operator
@@ -387,14 +387,14 @@ spec:
 				icspByteLimit: maxICSPSize,
 			},
 			want: []byte(
-				`apiVersion: operator.openshift.io/v1alpha1
-kind: ImageContentSourcePolicy
+				`apiVersion: config.openshift.io/v1
+kind: ImageDigestMirrorSet
 metadata:
   labels:
     operators.openshift.org/catalog: "true"
   name: catalog
 spec:
-  repositoryDigestMirrors:
+  imageDigestMirrors:
   - mirrors:
     - quay.io
     source: docker.io
@@ -409,7 +409,7 @@ spec:
 				mapping:       map[string]string{"docker.io": "quay.io"},
 				icspByteLimit: 0,
 			},
-			wantErr: fmt.Errorf("unable to add mirror {docker.io [quay.io]} to ICSP with the max-icsp-size set to 0"),
+			wantErr: fmt.Errorf("unable to add mirror {docker.io [quay.io] } to ICSP with the max-icsp-size set to 0"),
 		},
 	}
 	for _, tt := range tests {
@@ -564,7 +564,7 @@ func TestGenerateICSPs(t *testing.T) {
 				}
 
 				// convert unstructured object into ICSP
-				icspObject := &operatorv1alpha1.ImageContentSourcePolicy{}
+				icspObject := &apicfgv1.ImageDigestMirrorSet{}
 				err = runtime.DefaultUnstructuredConverter.FromUnstructured(unstructuredObj.Object, &icspObject)
 				if err != nil {
 					t.Error(err)
@@ -572,7 +572,7 @@ func TestGenerateICSPs(t *testing.T) {
 				}
 
 				// remove mappings found in ICSP from original mapping
-				for _, repositoryDigestMirrors := range icspObject.Spec.RepositoryDigestMirrors {
+				for _, repositoryDigestMirrors := range icspObject.Spec.ImageDigestMirrors {
 					delete(mapping, imagesource.TypedImageReference{Ref: reference.DockerImageReference{Registry: repositoryDigestMirrors.Source}})
 				}
 			}

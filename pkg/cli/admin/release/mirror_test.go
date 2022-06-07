@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	operatorv1alpha1 "github.com/openshift/api/operator/v1alpha1"
+	apicfgv1 "github.com/openshift/api/config/v1"
 
 	"k8s.io/apimachinery/pkg/util/diff"
 )
@@ -12,98 +12,98 @@ import (
 func Test_dedupeSortSources(t *testing.T) {
 	tests := []struct {
 		name            string
-		sources         []operatorv1alpha1.RepositoryDigestMirrors
-		expectedSources []operatorv1alpha1.RepositoryDigestMirrors
+		sources         []apicfgv1.ImageDigestMirrors
+		expectedSources []apicfgv1.ImageDigestMirrors
 	}{
 		{
 			name: "single Source single Mirror",
-			sources: []operatorv1alpha1.RepositoryDigestMirrors{
+			sources: []apicfgv1.ImageDigestMirrors{
 				{
 					Source:  "quay/ocp/test",
-					Mirrors: []string{"registry/ocp/test"},
+					Mirrors: []apicfgv1.ImageMirror{"registry/ocp/test"},
 				},
 			},
-			expectedSources: []operatorv1alpha1.RepositoryDigestMirrors{
+			expectedSources: []apicfgv1.ImageDigestMirrors{
 				{
 					Source:  "quay/ocp/test",
-					Mirrors: []string{"registry/ocp/test"},
+					Mirrors: []apicfgv1.ImageMirror{"registry/ocp/test"},
 				},
 			},
 		},
 		{
 			name: "single Source multiple Mirrors",
-			sources: []operatorv1alpha1.RepositoryDigestMirrors{
+			sources: []apicfgv1.ImageDigestMirrors{
 				{
 					Source:  "quay/ocp/test",
-					Mirrors: []string{"registry/ocp/test"},
+					Mirrors: []apicfgv1.ImageMirror{"registry/ocp/test"},
 				},
 				{
 					Source:  "quay/ocp/test",
-					Mirrors: []string{"registry/another/test"},
+					Mirrors: []apicfgv1.ImageMirror{"registry/another/test"},
 				},
 				{
 					Source:  "quay/ocp/test",
-					Mirrors: []string{"registry/ocp/test"},
+					Mirrors: []apicfgv1.ImageMirror{"registry/ocp/test"},
 				},
 			},
-			expectedSources: []operatorv1alpha1.RepositoryDigestMirrors{
+			expectedSources: []apicfgv1.ImageDigestMirrors{
 				{
 					Source:  "quay/ocp/test",
-					Mirrors: []string{"registry/ocp/test", "registry/another/test"},
+					Mirrors: []apicfgv1.ImageMirror{"registry/ocp/test", "registry/another/test"},
 				},
 			},
 		},
 		{
 			name: "multiple Source single Mirrors",
-			sources: []operatorv1alpha1.RepositoryDigestMirrors{
+			sources: []apicfgv1.ImageDigestMirrors{
 				{
 					Source:  "quay/ocp/test",
-					Mirrors: []string{"registry/ocp/test"},
+					Mirrors: []apicfgv1.ImageMirror{"registry/ocp/test"},
 				},
 				{
 					Source:  "quay/another/test",
-					Mirrors: []string{"registry/ocp/test"},
+					Mirrors: []apicfgv1.ImageMirror{"registry/ocp/test"},
 				},
 			},
-			expectedSources: []operatorv1alpha1.RepositoryDigestMirrors{
+			expectedSources: []apicfgv1.ImageDigestMirrors{
 				{
 					Source:  "quay/another/test",
-					Mirrors: []string{"registry/ocp/test"},
+					Mirrors: []apicfgv1.ImageMirror{"registry/ocp/test"},
 				},
 				{
 					Source:  "quay/ocp/test",
-					Mirrors: []string{"registry/ocp/test"},
+					Mirrors: []apicfgv1.ImageMirror{"registry/ocp/test"},
 				},
 			},
 		},
 		{
 			name: "multiple Source multiple Mirrors",
-			sources: []operatorv1alpha1.RepositoryDigestMirrors{
+			sources: []apicfgv1.ImageDigestMirrors{
 				{
 					Source:  "quay/ocp/test",
-					Mirrors: []string{"registry/ocp/test"},
+					Mirrors: []apicfgv1.ImageMirror{"registry/ocp/test"},
 				},
 				{
 					Source:  "quay/ocp/test",
-					Mirrors: []string{"registry/another/test"},
+					Mirrors: []apicfgv1.ImageMirror{"registry/another/test"},
 				},
 				{
 					Source:  "quay/another/test",
-					Mirrors: []string{"registry/ocp/test"},
+					Mirrors: []apicfgv1.ImageMirror{"registry/ocp/test"},
 				},
 				{
 					Source:  "quay/another/test",
-					Mirrors: []string{"registry/another/test"},
+					Mirrors: []apicfgv1.ImageMirror{"registry/another/test"},
 				},
 			},
-			expectedSources: []operatorv1alpha1.RepositoryDigestMirrors{
+			expectedSources: []apicfgv1.ImageDigestMirrors{
 				{
 					Source:  "quay/another/test",
-					Mirrors: []string{"registry/ocp/test", "registry/another/test"},
+					Mirrors: []apicfgv1.ImageMirror{"registry/ocp/test", "registry/another/test"},
 				},
 				{
 					Source:  "quay/ocp/test",
-					Mirrors: []string{"registry/ocp/test", "registry/another/test"},
+					Mirrors: []apicfgv1.ImageMirror{"registry/ocp/test", "registry/another/test"},
 				},
 			},
 		},
